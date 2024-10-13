@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .grid-item {
+            width: 100px;
+            height: 100px;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center p-6">
+    <h1 class="text-4xl font-bold text-white mb-2">Tic-Tac-Toe</h1>
+    
+    <!-- Mode Selection -->
+    <div id="modeSelection" class=" flex justify-between gap-4 items-center ">
+        <button id="vsOpponent" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md">Vs Opponent</button>
+        <button id="vsComputer" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md">Vs Computer</button>
+    </div>
+    
+    <!-- Status Message -->
+    <p id="status" class="text-xl font-semibold text-white mt-8 hidden"></p>
+
+    <!-- Tic Tac Toe Grid -->
+    <div id="gameBoard" class="hidden grid grid-cols-3 gap-4 bg-white bg-opacity-20 backdrop-blur-lg p-8 rounded-2xl shadow-lg">
+        <div id="0" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+        <div id="1" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+        <div id="2" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+        <div id="3" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+        <div id="4" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+        <div id="5" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+        <div id="6" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+
+        <div id="7" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+        <div id="8" class="grid-item bg-white bg-opacity-30 hover:bg-white rounded-md flex items-center justify-center cursor-pointer text-black font-bold"></div>
+    </div>
+
+
+    <div class="flex justify-center items-center gap-4 mt-2">
+        <!-- Restart Button -->
+    <button 
+    id="restartBtn" 
+    class="hidden  bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-all duration-200"
+>
+    Restart Game
+</button>
+
+<!-- Back Button -->
+<button 
+    id="backBtn" 
+    class="hidden  bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition-all duration-200"
+>
+    Back to Mode Selection
+</button>
+
+    </div>
+    <script>
+        const cells = document.querySelectorAll('.grid-item');
+        const statusDisplay = document.getElementById('status');
+        const restartBtn = document.getElementById('restartBtn');
+        const backBtn = document.getElementById('backBtn');
+        const modeSelection = document.getElementById('modeSelection');
+        const gameBoard = document.getElementById('gameBoard');
+        let currentPlayer = 'X';
+        let gameState = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let isVsComputer = false;
+
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        // Handle cell click
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            const clickedCellIndex = parseInt(clickedCell.id);
+
+            if (gameState[clickedCellIndex] !== '' || !gameActive) {
+                return;
+            }
+
+            gameState[clickedCellIndex] = currentPlayer;
+            clickedCell.textContent = currentPlayer;
+
+            if (checkForWinner()) {
+                statusDisplay.textContent = `Player ${currentPlayer} wins!`;
+                gameActive = false;
+                return;
+            }
+
+            if (!gameState.includes('')) {
+                statusDisplay.textContent = 'It\'s a draw!';
+                gameActive = false;
+                return;
+            }
+
+            if (isVsComputer && currentPlayer === 'X') {
+                currentPlayer = 'O';
+                statusDisplay.textContent = `It's ${currentPlayer}'s turn`;
+                setTimeout(() => makeComputerMove(), 500);
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                statusDisplay.textContent = `It's ${currentPlayer}'s turn`;
+            }
+        }
+
+        // Simple AI for vs Computer mode
+        function makeComputerMove() {
+            let availableCells = gameState
+                .map((cell, index) => (cell === '' ? index : null))
+                .filter(index => index !== null);
+
+            const randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)];
+            gameState[randomIndex] = 'O';
+            cells[randomIndex].textContent = 'O';
+
+            if (checkForWinner()) {
+                statusDisplay.textContent = 'Computer wins!';
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = 'X';
+            statusDisplay.textContent = `It's ${currentPlayer}'s turn`;
+        }
+
+        // Check for winner
+        function checkForWinner() {
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] === gameState[b] && gameState[b] === gameState[c] && gameState[a] !== '') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Restart the game
+        function restartGame() {
+            gameState = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            currentPlayer = 'X';
+            cells.forEach(cell => cell.textContent = '');
+            statusDisplay.textContent = `It's X's turn`;
+        }
+
+        // Game mode selection
+        document.getElementById('vsOpponent').addEventListener('click', () => {
+            isVsComputer = false;
+            startGame();
+        });
+
+        document.getElementById('vsComputer').addEventListener('click', () => {
+            isVsComputer = true;
+            startGame();
+        });
+
+        // Function to start the game
+        function startGame() {
+            modeSelection.classList.add('hidden');
+            gameBoard.classList.remove('hidden');
+            statusDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            backBtn.classList.remove('hidden');
+            restartGame();
+        }
+
+        // Back button to return to the mode selection
+        backBtn.addEventListener('click', () => {
+            modeSelection.classList.remove('hidden');
+            gameBoard.classList.add('hidden');
+            statusDisplay.classList.add('hidden');
+            restartBtn.classList.add('hidden');
+            backBtn.classList.add('hidden');
+        });
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        restartBtn.addEventListener('click', restartGame);
+    </script>
+</body>
+</html>
